@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://deck-of-cards.js.org/dist/deck.js"></script>
+        <link rel="stylesheet" href="https://deck-of-cards.js.org/example.css">
+    </head>
+    <body>
+        <div id="instructions" style="text-align: center;">
+        <div id="instructionText"></div> <button id='nextButton' onclick="next();">Done</button>
+        </div>
+        <button id="topButton" style="display: none; position: fixed;" onclick="chooseRow(0);">Top Row</button>
+        <button id="middleButton" style="display: none; position: fixed;" onclick="chooseRow(1);">Middle Row</button>
+        <button id="bottomButton" style="display: none; position: fixed;" onclick="chooseRow(2);">Bottom Row</button>
+        <div id="container">
+        </div>
+
+    <script type="text/javascript">
+        let $container = document.getElementById('container');
+    let $instructions = document.getElementById('instructionText');
+    let $button = document.getElementById('nextButton');
+    let $topButton = document.getElementById('topButton');
+    let $middleButton = document.getElementById('middleButton');
+    let $bottomButton = document.getElementById('bottomButton');
+
+    let nextStep = 0;
+    let deck;
+
+    let cardRows;
+
+    next();
+
+    function deal() {
+
+        if (deck) {
+        deck.unmount();
+    }
+
+    deck = Deck();
+
+        deck.mount($container);
+    
+    while (deck.cards.length > 21) {
+        let cardNum = Math.floor(Math.random() * deck.cards.length);
+        let card = deck.cards.splice(cardNum, 1)
+        card[0].unmount();
+    }
+
+    deck.flip();
+    deck.fan();
+    }
+
+    function next() {
+
+    if (nextStep == 0) {
+        deal();
+        $instructions.textContent = "Pick a card and remember it.";
+        $button.textComtnet = "Done"
+    } else if (nextStep == 1) {
+        $instructions.textContent = "Let me shuffle these cards...";
+        deck.flip();
+        $button.style.display = "none";
+
+        for (let count = 0; count < 8; count++) {
+        deck.shuffle();
+        }
+        deck.queue(()=>{
+            prepareDeal(deck.cards);
+        $instructions.textContent = "When you are ready, click 'GO' then watch for your card...";
+        $button.textContent = "Go";
+        $button.style.display = "inline";
+        });
+        
+    } else if (nextStep == 2) {    
+        layout(deck);
+        $instructions.textContent = "Watch for your card..."
+        $button.style.display = "none";
+    } else if (nextStep == 3) {
+        $instructions.textContent = "Which row is your card in?"
+        $button.style.display = "none";
+        $topButton.style.display = "block";
+        $middleButton.style.display = "block";
+        $bottomButton.style.display = "block";
+    } else if (nextStep == 4) {
+        $instructions.textContent = "Let's see if you can find your card again..."
+        $button.style.display = "inline";
+        $button.textContent = "Ok";
+    }	else if (nextStep == 5) {    
+        layout(deck);
+        $instructions.textContent = "Watch for your card..."
+        $button.style.display = "none";
+    } else if (nextStep == 6) {
+        $instructions.textContent = "Which row is your card in?"
+        $button.style.display = "none";
+        $topButton.style.display = "block";
+        $middleButton.style.display = "block";
+        $bottomButton.style.display = "block";  
+    } else if (nextStep == 7) {
+        $instructions.textContent = "Let's see if you can find your card again..."
+        $button.style.display = "inline";
+        $button.textContent = "Ok";
+    }	else if (nextStep == 8) {    
+        layout(deck);
+        $instructions.textContent = "Watch for your card..."
+        $button.style.display = "none";
+    } else if (nextStep == 9) {
+        $instructions.textContent = "Which row is your card in?"
+        $button.style.display = "none";
+        $topButton.style.display = "block";
+        $middleButton.style.display = "block";
+        $bottomButton.style.display = "block";
+    } else if (nextStep == 10) {
+        $instructions.textContent = "Can I find your card?"
+        $button.style.display = "inline";
+        $button.textContent = "Go";
+    } else if (nextStep == 11) {
+        $button.style.display = "none";
+        findCard(deck);
+    } else if (nextStep == 12) {
+        $button.style.display = "inline";
+        $button.textContent = "Go again?";
+        $instructions.textContent = "Is this your card?"
+        nextStep = -1;
+    }
+    
+    nextStep = nextStep + 1;
+    }
+
+    /** Move deck to left side of screen 
+     */
+    function prepareDeal(cards, base) {
+        base = base ? base : 0;
+    
+    cards.forEach((card,i)=>{
+        card.$el.style.zIndex = i;
+        card.animateTo({
+        delay: 0,
+        duration: 100,
+        x: 50 - window.innerWidth / 2,
+        y: 0,
+        rot: 0,
+        onProgress: ()=>{card.$el.style.zIndex = i + base}
+        });
+    });  
+    }
+
+    /** Lay out cards in 3 rows of 7 cards
+     */
+    function layout(deck) {
+        const colSize = 40; //window.innerWidth / 4;  
+    const rowSize = window.innerHeight / 4; //40;
+    
+    cardRows = [[], [], []];
+    
+    $topButton.style.position = "fixed";
+    $middleButton.style.position = "fixed";
+    $bottomButton.style.position = "fixed";
+    
+    $topButton.style.left = "20px";
+    $middleButton.style.left = "20px";
+    $bottomButton.style.left = "20px";
+    
+    const middle = window.innerHeight / 2;
+    $middleButton.style.top = middle + "px";
+    $topButton.style.top = middle - rowSize + "px";
+    $bottomButton.style.top = middle + rowSize + "px";
+    
+    let cardNum = 0;
+    
+        deck.cards.forEach((card, cardNum) => {
+        //card = deck.cards[deck.cards.length - 1 - cardNum];
+        row = cardNum % 3;
+        cardRows[row].push(card);
+        
+        card.animateTo({
+            delay: 400 * cardNum,
+        duration: 300,
+        ease: 'quartOut',
+        x: colSize * Math.floor(cardNum / 3) - (colSize * 3.5),
+        y: rowSize * row - rowSize,
+        onStart: ()=>{card.setSide('front')},
+        onProgress: ()=>{card.$el.style.zIndex = cardNum + deck.cards.length},
+        onComplete: ()=>{if (cardNum == deck.cards.length - 1) next();}
+        });
+    });
+    }
+
+    function chooseRow(rowNum) {
+        $topButton.style.display = "none";
+    $middleButton.style.display = "none";
+    $bottomButton.style.display = "none";
+    $instructions.textContent = "Let's bury that row in the deck..."
+
+        let row = 0;
+        iId = setInterval(()=>{
+        if (row >= cardRows.length) {
+        clearInterval(iId);    
+        stackRows(rowNum);
+        return;
+        }
+        
+        gatherCards(cardRows[row]);
+        row++;
+    }, 600);
+    }
+
+    function gatherCards(cards) {
+        cards.forEach((card) => {
+        card.animateTo({
+            delay: 0,
+            duration: 500,
+        ease: 'quartOut',
+        x: 0,
+        y: card.y,
+        });
+    });
+    }
+
+    function stackRows(rowNum) {
+        deck.cards.forEach(card=>card.setSide('back'));
+
+        let others = [cardRows[0], cardRows[1], cardRows[2]];
+    let chosen = others.splice(rowNum, 1)[0];
+    
+    let first = others.splice(Math.floor(Math.random() * 2), 1)[0];
+    let second = others[0];
+    
+    let stacks = [first, chosen, second];
+    
+    let cards = [];
+    
+    stacks.forEach((stack)=> {
+        stack.forEach((card)=>{
+            cards.push(card);
+        })	
+    })
+    
+    deck.cards = cards;
+    
+    let row = 0;
+    let iId = setInterval(()=>{
+        if (row < 3) {
+            prepareDeal(stacks[row], 7 * row);
+        row++;
+        }
+        else {
+            clearInterval(iId);
+        next();
+        }
+    }, 1000);
+    }
+
+    function findCard(deck) {
+        let cardNum = 0;
+    const colWidth = 30;
+    
+    let sId = setInterval(()=>{
+        if (cardNum == 10) {
+            clearInterval(sId);
+        }
+        
+        deck.cards[cardNum].animateTo({
+            delay: 0,
+        duration: 500,
+        x: (-colWidth * 5) + cardNum * colWidth,
+        y: 0,
+        ease: 'quartOut',
+        onComplete: ()=>{
+            if (cardNum == 10) {
+                deck.cards[cardNum].setSide('front');
+                next();
+            }
+            }
+        });
+        cardNum++;
+    }, 500);
+    }
+    </script>
+    </body>
+</html>
